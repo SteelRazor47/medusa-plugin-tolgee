@@ -1,29 +1,24 @@
 import {
-  ProductService,
-  type SubscriberConfig,
-  type SubscriberArgs,
+    type SubscriberConfig,
+    type SubscriberArgs,
 } from "@medusajs/medusa";
-import TranslationManagementService from "../services/translation-management";
+import { TOLGEE_MODULE } from "../modules/tolgee";
+import { ProductEvents } from "@medusajs/framework/utils";
 
 interface ProductDeletionEventData {
-  id: string;
+    id: string;
 }
 
 export default async function productDeletionHandler({
-  data,
-  container,
+    event: { data },
+    container,
 }: SubscriberArgs<ProductDeletionEventData>) {
-  const translationService: TranslationManagementService = container.resolve(
-    "translationManagementService"
-  );
-  const { id } = data;
+    const translationService = container.resolve(TOLGEE_MODULE);
+    const { id } = data;
 
-  await translationService.deleteProductTranslations(id);
+    await translationService.deleteProductTranslations(id);
 }
 
 export const config: SubscriberConfig = {
-  event: ProductService.Events.DELETED,
-  context: {
-    subscriberId: "product-deletion-handler",
-  },
+    event: ProductEvents.PRODUCT_DELETED
 };

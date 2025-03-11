@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import type { WidgetConfig, ProductDetailsWidgetProps } from "@medusajs/admin";
-import { useAdminCustomQuery } from "medusa-react";
-import { Tolgee, TolgeeProvider, FormatSimple } from "@tolgee/react";
+import { defineWidgetConfig } from "@medusajs/admin-sdk"
+import { AdminProduct, DetailWidgetProps } from "@medusajs/framework/types"
+import { useQuery } from "@tanstack/react-query"
+import { Tolgee, TolgeeProvider, FormatSimple, TolgeeInstance } from "@tolgee/react";
 import { InContextTools } from "@tolgee/web/tools";
 
 import TranslationManagement from "../../components/TranslationManagement";
+import { sdk } from "../../lib/sdk";
+import { toast } from "@medusajs/ui";
 
 interface Language {
   label: string;
@@ -16,14 +19,14 @@ export interface ResponseData {
   availableLanguages: Language[];
 }
 
-const TranslationWidget = ({ product, notify }: ProductDetailsWidgetProps) => {
-  const [tolgee, setTolgee] = useState(null);
-  const [refreshKey, setRefreshKey] = useState(false);
+const TranslationWidget = ({ data: product }: DetailWidgetProps<AdminProduct>) => {
+  const notify = toast
+  const [tolgee, setTolgee] = useState<TolgeeInstance | null>(null);
 
-  const { data } = useAdminCustomQuery<undefined, ResponseData>(
-    "/admin/multilingual-options",
-    ["defaultLanguage", "availableLanguages"]
-  );
+  const { data } = useQuery<ResponseData>({
+    queryFn: () => sdk.client.fetch("/admin/multilingual-options"),
+    queryKey: ["defaultLanguage", "availableLanguages"],
+  })
 
   useEffect(() => {
     if (data && !tolgee) {
@@ -33,8 +36,8 @@ const TranslationWidget = ({ product, notify }: ProductDetailsWidgetProps) => {
         .use(FormatSimple())
         .init({
           language: data.defaultLanguage,
-          apiUrl: process.env.MEDUSA_ADMIN_TOLGEE_API_URL,
-          apiKey: process.env.MEDUSA_ADMIN_TOLGEE_API_KEY,
+          apiUrl: import.meta.env.VITE_ADMIN_TOLGEE_API_URL,
+          apiKey: import.meta.env.VITE_ADMIN_TOLGEE_API_KEY,
           availableLanguages: languages,
           observerOptions: {
             highlightColor: "rgba(0,0,0,0.7)",
@@ -52,11 +55,6 @@ const TranslationWidget = ({ product, notify }: ProductDetailsWidgetProps) => {
     }
   };
 
-  const refreshObserver = () => {
-    setRefreshKey(!refreshKey);
-    tolgee.addPlugin(InContextTools());
-  };
-
   return (
     <>
       {tolgee ? (
@@ -67,8 +65,6 @@ const TranslationWidget = ({ product, notify }: ProductDetailsWidgetProps) => {
             availableLanguages={data?.availableLanguages || []}
             defaultLanguage={data?.defaultLanguage || "en"}
             handleLanguageChange={handleLanguageChange}
-            refreshObserver={refreshObserver}
-            refreshKey={refreshKey}
           />
         </TolgeeProvider>
       ) : (
@@ -78,8 +74,8 @@ const TranslationWidget = ({ product, notify }: ProductDetailsWidgetProps) => {
   );
 };
 
-export const config: WidgetConfig = {
+export const config = defineWidgetConfig({
   zone: "product.details.after",
-};
+})
 
-export default TranslationWidget;
+export default TranslationWidget

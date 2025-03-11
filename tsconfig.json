@@ -1,32 +1,36 @@
 {
   "compilerOptions": {
-    "target": "es2019",
-    "module": "commonjs",
-    "allowJs": true, 
-    "checkJs": false, 
-    "jsx": "react-jsx", 
-    "declaration": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "noEmit": false,
-    "strict": false,
-    "moduleResolution": "node",
+    "target": "ES2021",
     "esModuleInterop": true,
-    "resolveJsonModule": true,
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "declaration": true,
+    "sourceMap": false,
+    "inlineSourceMap": true,
+    "outDir": "./.medusa/server",
+    "rootDir": "./",
+    "jsx": "react-jsx",
     "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "checkJs": false,
+    "strictNullChecks": true
   },
-  "include": ["src/"],
+  "ts-node": {
+    "swc": true
+  },
+  "include": [
+    "**/*",
+    ".medusa/types/*"
+  ],
   "exclude": [
-    "dist",
-    "build",
-    ".cache",
-    "tests",
-    "**/*.spec.js",
-    "**/*.spec.ts",
     "node_modules",
-    ".eslintrc.js"
+    ".medusa/server",
+    ".medusa/admin",
+    "src/admin",
+    ".cache"
   ]
 }

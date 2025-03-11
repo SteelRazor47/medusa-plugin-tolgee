@@ -1,16 +1,11 @@
-import type { MedusaRequest, MedusaResponse } from "@medusajs/medusa";
-import TranslationManagementService from "../../../services/translation-management";
+import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
+import { TOLGEE_MODULE } from "../../../modules/tolgee";
 
 export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
-  const translationManagementService: TranslationManagementService =
-    req.scope.resolve("translationManagementService");
+  const translationModule = req.scope.resolve(TOLGEE_MODULE);
 
-  const defaultLanguage = translationManagementService.getDefaultLanguage();
-  const availableLanguages =
-    translationManagementService.getAvailableLanguages();
+  const languages = await translationModule.getLanguages()
+    .catch((err) => { res.status(500).json(err); });
 
-  res.json({
-    defaultLanguage,
-    availableLanguages,
-  });
+  res.json(languages);
 };

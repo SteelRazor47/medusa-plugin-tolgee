@@ -77,8 +77,8 @@ const plugins = [
   {
     resolve: `medusa-multilingual-tolgee`,
     options: {
-      baseURL: process.env.MEDUSA_ADMIN_TOLGEE_API_URL,
-      apiKey: process.env.MEDUSA_ADMIN_TOLGEE_API_KEY,
+      baseURL: process.env.VITE_ADMIN_TOLGEE_API_URL,
+      apiKey: process.env.VITE_ADMIN_TOLGEE_API_KEY,
       defaultLanguage: "en",
       availableLanguages: [
         { label: "English", tag: "en" },

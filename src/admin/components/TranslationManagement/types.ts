@@ -1,16 +1,19 @@
-import type { ProductDetailsWidgetProps } from "@medusajs/admin";
+import { AdminProduct } from "@medusajs/framework/types";
+import { toast as medusaToast } from "@medusajs/ui";
 
 export interface Language {
   label: string;
   tag: string;
 };
 
-export interface Props extends ProductDetailsWidgetProps {
+
+
+export interface Props {
+  product: AdminProduct;
+  notify: typeof medusaToast;
   availableLanguages: Language[];
   defaultLanguage: string;
   handleLanguageChange: (lang: string) => void;
-  refreshObserver: () => void;
-  refreshKey: boolean;
 };
 
 export interface RequestQuery {
@@ -20,12 +23,3 @@ export interface RequestQuery {
 export interface ResponseData {
   keyNames: string[];
 };
-
-export interface TranslationRequest {
-  product: Pick<ProductDetailsWidgetProps, 'product'>['product'];
-}
-
-export interface TranslationResponse {
-  message: string;
-  data: any;
-}
