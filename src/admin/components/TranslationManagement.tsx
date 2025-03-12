@@ -1,41 +1,52 @@
-import { Select } from "@medusajs/ui";
-import formatKeyName from "../../utils/formatKeyName";
+import { Select, toast } from "@medusajs/ui";
+import formatKeyName from "../utils/formatKeyName";
 import { useTranslate } from "@tolgee/react";
 
-import {
-  Props,
-  ResponseData,
-} from "./types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { sdk } from "../../lib/sdk";
-import { Container } from "../container";
-import { Header } from "../header";
-import { SectionRow } from "../section-row";
+import { sdk } from "../lib/sdk";
+import { Container } from "./container";
+import { Header } from "./header";
+import { SectionRow } from "./section-row";
 import { useMemo } from "react";
+import { AdminOptions, SupportedModels } from "../../common";
+
+type Props = {
+  id: string;
+  slug: SupportedModels
+  notify: typeof toast;
+  availableLanguages: AdminOptions["availableLanguages"];
+  defaultLanguage: AdminOptions["defaultLanguage"];
+  handleLanguageChange: (lang: string) => void;
+};
+
+type ResponseData = {
+  keyNames: string[];
+}
 
 const TranslationManagement = ({
-  product,
+  id,
+  slug,
   notify,
   availableLanguages,
   defaultLanguage,
   handleLanguageChange
 }: Props) => {
-  const { t } = useTranslate(product.id);
+  const { t } = useTranslate(id);
   const client = useQueryClient();
 
   const { mutateAsync: syncTranslation, isPending: syncing } =
     useMutation({
       mutationFn: async () => {
-        await sdk.client.fetch(`/admin/sync-translation`, {
+        await sdk.client.fetch(`/admin/tolgee/translation/${slug}`, {
           method: "post",
         })
       },
       onSuccess: () => {
-        notify.success("Success", { description: "Translations sync confirmed and processing." });
-        client.invalidateQueries({ queryKey: ["tolgee-translations"] });
+        notify.success("Success", { description: "Translations sync successful." });
+        client.invalidateQueries({ queryKey: ["tolgee-translations", slug] });
       },
       onError: (error) => {
-        console.error("Failed to sync all translations:", error);
+        console.error(`Failed to sync translations for ${slug}:`, error);
         notify.error("Error", { description: "Failed to sync translations." });
       },
       mutationKey: ["syncTranslation"]
@@ -44,23 +55,23 @@ const TranslationManagement = ({
   const { mutateAsync: addTranslation, isPending: adding } =
     useMutation({
       mutationFn: () =>
-        sdk.client.fetch(`/admin/product-translation/${product.id}`, {
+        sdk.client.fetch(`/admin/tolgee/translation/${slug}/${id}`, {
           method: "post",
         }),
       onSuccess: () => {
-        notify.success("Success", { description: "Product translations created." });
-        client.invalidateQueries({ queryKey: ["tolgee-translations", product.id] });
+        notify.success("Success", { description: "Translation created." });
+        client.invalidateQueries({ queryKey: ["tolgee-translations", slug, id] });
       },
       onError: (error) => {
-        console.error("Failed to create product translations:", error.message);
-        notify.error("Error", { description: "Failed to create product translations." });
+        console.error(`Failed to create translation for ${slug}(${id}):`, error.message);
+        notify.error("Error", { description: "Failed to create translation." });
       },
-      mutationKey: ["productTranslation"]
+      mutationKey: ["addTranslation"]
     })
 
   const { data: { keyNames } = { keyNames: [] }, isLoading } = useQuery<ResponseData>({
-    queryFn: async () => await sdk.client.fetch(`/admin/product-translation/${product.id}`),
-    queryKey: ["tolgee-translations", product.id]
+    queryFn: async () => await sdk.client.fetch(`/admin/tolgee/translation/${slug}/${id}`),
+    queryKey: ["tolgee-translations", slug, id]
   })
 
   const syncAllAction = {
@@ -119,7 +130,7 @@ const TranslationManagement = ({
         title="Translations"
         subtitle={keyNames?.length > 0 ?
           "To translate, ALT+click on the value." :
-          "The product has no translations yet."
+          "No translations present yet."
         }
         actions={actions}
       />
