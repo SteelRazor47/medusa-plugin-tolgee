@@ -7,13 +7,13 @@ import TranslationManagement from "./TranslationManagement";
 import { sdk } from "../lib/sdk";
 import { toast as notify } from "@medusajs/ui";
 import { useEffect, useState } from "react";
-import { AdminOptions, SupportedModels, WidgetType } from "../../common";
+import { TolgeeAdminOptions, SupportedModels, WidgetType } from "../../common";
 
 export const TranslationWidget = (slug: SupportedModels) =>
   ({ data: { id } }: DetailWidgetProps<WidgetType<SupportedModels>>) => {
     const [tolgee, setTolgee] = useState<TolgeeInstance | null>(null);
 
-    const { data } = useQuery<AdminOptions>({
+    const { data } = useQuery<TolgeeAdminOptions>({
       queryFn: () => sdk.client.fetch("/admin/tolgee/options"),
       queryKey: ["tolgee-options"],
     })

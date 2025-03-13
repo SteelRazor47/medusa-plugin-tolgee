@@ -1,7 +1,7 @@
 import { AxiosInstance, default as axios } from "axios";
 import { MedusaError } from "@medusajs/utils";
 import { ProductCategoryDTO, ProductDTO } from "@medusajs/framework/types";
-import { AdminOptions, defaultSupportedProperties, SupportedModels } from "../../common";
+import { TolgeeAdminOptions, defaultSupportedProperties, SupportedModels } from "../../common";
 
 export type TolgeeModuleConfig = {
     projectId: string;
@@ -27,8 +27,8 @@ type TolgeeLanguagesResponse = {
 
 class TolgeeModuleService {
     protected client_: AxiosInstance;
-    protected defaultLanguage: AdminOptions["defaultLanguage"];
-    protected availableLanguages: AdminOptions["availableLanguages"];
+    protected defaultLanguage: TolgeeAdminOptions["defaultLanguage"];
+    protected availableLanguages: TolgeeAdminOptions["availableLanguages"];
     readonly options_: TolgeeModuleConfigInternal;
 
     constructor({ }, options: TolgeeModuleConfig) {
@@ -51,7 +51,7 @@ class TolgeeModuleService {
         };
     }
 
-    async getOptions(): Promise<AdminOptions> {
+    async getOptions(): Promise<TolgeeAdminOptions> {
         try {
             const { data } = await this.client_.get<TolgeeLanguagesResponse>(`/languages`);
 

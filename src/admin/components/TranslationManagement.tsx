@@ -8,14 +8,14 @@ import { Container } from "./container";
 import { Header } from "./header";
 import { SectionRow } from "./section-row";
 import { useMemo } from "react";
-import { AdminOptions, SupportedModels } from "../../common";
+import { TolgeeAdminOptions, SupportedModels } from "../../common";
 
 type Props = {
   id: string;
   slug: SupportedModels
   notify: typeof toast;
-  availableLanguages: AdminOptions["availableLanguages"];
-  defaultLanguage: AdminOptions["defaultLanguage"];
+  availableLanguages: TolgeeAdminOptions["availableLanguages"];
+  defaultLanguage: TolgeeAdminOptions["defaultLanguage"];
   handleLanguageChange: (lang: string) => void;
 };
 

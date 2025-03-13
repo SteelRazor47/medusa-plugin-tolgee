@@ -16,7 +16,7 @@ export const defaultSupportedProperties = {
     product_category: ["name", "description"],
 } satisfies Record<SupportedModels, unknown>;
 
-export type AdminOptions = {
+export type TolgeeAdminOptions = {
     defaultLanguage: Language["tag"];
     availableLanguages: Language[];
     apiKey: string;
