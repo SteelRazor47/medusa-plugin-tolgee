@@ -1,19 +1,22 @@
-import type { AdminProduct, AdminProductCategory } from "@medusajs/framework/types";
+import type { AdminCollection, AdminProduct, AdminProductCategory, AdminStockLocation } from "@medusajs/framework/types";
 import { ProductEvents } from "@medusajs/framework/utils";
 
 interface SupportedModelsMap {
     product: AdminProduct;
     product_category: AdminProductCategory;
+    product_collection: AdminCollection;
 }
 
 const deletionEventsMap = {
     product: ProductEvents.PRODUCT_DELETED,
-    product_category: ProductEvents.PRODUCT_CATEGORY_DELETED
+    product_category: ProductEvents.PRODUCT_CATEGORY_DELETED,
+    product_collection: ProductEvents.PRODUCT_COLLECTION_DELETED,
 } satisfies Record<SupportedModels, unknown>;
 
 export const defaultSupportedProperties = {
     product: ["title", "subtitle", "description"],
     product_category: ["name", "description"],
+    product_collection: ["title"],
 } satisfies Record<SupportedModels, unknown>;
 
 export type TolgeeAdminOptions = {

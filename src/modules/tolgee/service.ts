@@ -1,6 +1,6 @@
 import { AxiosInstance, default as axios } from "axios";
 import { MedusaError } from "@medusajs/utils";
-import { ProductCategoryDTO, ProductDTO } from "@medusajs/framework/types";
+import { ProductCategoryDTO, ProductCollectionDTO, ProductDTO, ShippingOptionDTO } from "@medusajs/framework/types";
 import { TolgeeAdminOptions, defaultSupportedProperties, SupportedModels } from "../../common";
 
 export type TolgeeModuleConfig = {
@@ -79,17 +79,18 @@ class TolgeeModuleService {
         }
     }
 
-    async getNamespaceKeys(productId: string): Promise<string[]> {
+    async getNamespaceKeys(id: string | string[]): Promise<string[]> {
+        const ids = Array.isArray(id) ? id : [id];
         try {
             const response = await this.client_.get(
-                `/keys/select?filterNamespace=${productId}`
+                `/keys/select?filterNamespace=${ids.join(",")}`
             );
 
             return response.data.ids;
         } catch (error) {
             throw new MedusaError(
                 MedusaError.Types.UNEXPECTED_STATE,
-                `Failed to fetch namespace keys for product ${productId}: ${error.message}`
+                `Failed to fetch namespace keys for ${id}: ${error.message}`
             );
         }
     }
@@ -108,11 +109,10 @@ class TolgeeModuleService {
     }
 
     async getProductTranslationKeys(
-        productId: string
-    ): Promise<string[] | any[]> {
-        const ids = await this.getNamespaceKeys(productId);
-
-        return await Promise.all(ids.map((keyId) => this.getKeyName(keyId)));
+        ids: string | string[]
+    ) {
+        const keys = await this.getNamespaceKeys(ids);
+        return await Promise.all(keys.map((keyId) => this.getKeyName(keyId)));
     }
 
     async list(
@@ -131,12 +131,11 @@ class TolgeeModuleService {
                 return { id, ...data }
             }))
 
-            console.log(response)
             return response;
         } catch (error) {
             throw new MedusaError(
                 MedusaError.Types.UNEXPECTED_STATE,
-                `Failed to fetch translations for product ID ${filter.id}: ${error.message}`
+                `Failed to fetch translations for key ID ${filter.id}: ${error.message}`
             );
         }
     }
@@ -167,7 +166,7 @@ class TolgeeModuleService {
     }
 
     async createModelTranslations(
-        models: (ProductDTO | ProductCategoryDTO)[],
+        models: (ProductDTO | ProductCategoryDTO | ProductCollectionDTO | ShippingOptionDTO)[],
         type: SupportedModels
     ): Promise<string[]> {
         const keys = models.flatMap((model) =>
@@ -182,24 +181,22 @@ class TolgeeModuleService {
             await this.createNewKeyWithTranslation(keys)
             return models.map((model) => model.id);
         } catch (error) {
-            console.error('Product already translated or error creating translations.', error);
+            console.error(`Entities of type ${type} already translated or error creating translations: ${models.map((model) => model.id)}`, error);
             return []
         }
     }
 
-    async deleteTranslation(productId: string): Promise<void> {
-        const productTranslationKeys = await this.getNamespaceKeys(productId);
+    async deleteTranslation(id: string): Promise<void> {
+        const keys = await this.getNamespaceKeys(id);
 
         try {
-            const response = await this.client_.delete(
-                `/keys/${productTranslationKeys}`
-            );
+            const response = await this.client_.delete(`/keys/${keys}`);
 
             return response.data;
         } catch (error) {
             throw new MedusaError(
                 MedusaError.Types.UNEXPECTED_STATE,
-                `Failed to delete product translations for product ${productId}: ${error.message}`
+                `Failed to delete translations for namespace ${id}: ${error.message}`
             );
         }
     }

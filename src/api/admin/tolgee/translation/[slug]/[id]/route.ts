@@ -24,11 +24,14 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   const retrieveFns = {
     product: (id: string) => productModule.retrieveProduct(id, { select: ["*"] }),
     product_category: (id: string) => productModule.retrieveProductCategory(id, { select: ["*"] }),
+    product_collection: (id: string) => productModule.retrieveProductCollection(id, { select: ["*"] }),
   } satisfies Record<SupportedModels, unknown> // <- type assertion to ensure all keys are present
 
   try {
-    const model = await retrieveFns[slug]?.(id)
-    const ids = await translationModule.createModelTranslations([model], slug)
+    const m = await retrieveFns[slug]?.(id)
+    const model = Array.isArray(m) ? m : [m]
+
+    const ids = await translationModule.createModelTranslations(model, slug)
     return res.status(201).json({ ids });
   } catch (e) {
     return res.status(500).json(e)

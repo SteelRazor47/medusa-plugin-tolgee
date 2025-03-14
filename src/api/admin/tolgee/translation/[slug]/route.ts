@@ -11,6 +11,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   const listFns = {
     product: () => productModule.listProducts(undefined, { select: ["*"] }),
     product_category: () => productModule.listProductCategories(undefined, { select: ["*"] }),
+    product_collection: () => productModule.listProductCollections(undefined, { select: ["*"] }),
   } satisfies Record<SupportedModels, unknown> // <- type assertion to ensure all keys are present
 
   try {
