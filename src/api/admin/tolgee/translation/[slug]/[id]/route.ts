@@ -12,6 +12,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
     return res.status(200).json({ keyNames });
   }
   catch (e) {
+    console.error(e)
     return res.status(500).json(e)
   }
 };
@@ -19,19 +20,19 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
 export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   const translationModule = req.scope.resolve(TOLGEE_MODULE);
   const productModule = req.scope.resolve(Modules.PRODUCT);
+  const fulfillmentModule = req.scope.resolve(Modules.FULFILLMENT);
   const { id, slug } = req.params as { id: string, slug: SupportedModels }; // TODO zod validation
 
   const retrieveFns = {
     product: (id: string) => productModule.retrieveProduct(id, { select: ["*"] }),
     product_category: (id: string) => productModule.retrieveProductCategory(id, { select: ["*"] }),
     product_collection: (id: string) => productModule.retrieveProductCollection(id, { select: ["*"] }),
+    shipping_option: (id: string) => fulfillmentModule.retrieveShippingOption(id, { select: ["*"] })
   } satisfies Record<SupportedModels, unknown> // <- type assertion to ensure all keys are present
 
   try {
-    const m = await retrieveFns[slug]?.(id)
-    const model = Array.isArray(m) ? m : [m]
-
-    const ids = await translationModule.createModelTranslations(model, slug)
+    const model = await retrieveFns[slug]?.(id)
+    const ids = await translationModule.createModelTranslations([model], slug)
     return res.status(201).json({ ids });
   } catch (e) {
     return res.status(500).json(e)
