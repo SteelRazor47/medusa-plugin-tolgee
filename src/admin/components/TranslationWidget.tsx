@@ -5,7 +5,6 @@ import { InContextTools } from "@tolgee/web/tools";
 
 import TranslationManagement from "./TranslationManagement";
 import { sdk } from "../lib/sdk";
-import { toast as notify } from "@medusajs/ui";
 import { useEffect, useState } from "react";
 import { TolgeeAdminOptions, SupportedModels, WidgetType } from "../../common";
 
@@ -39,12 +38,6 @@ export const TranslationWidget = (slug: SupportedModels) =>
       }
     }, [data]);
 
-    const handleLanguageChange = async (lang: string) => {
-      if (tolgee) {
-        await tolgee.changeLanguage(lang);
-      }
-    };
-
     return (
       <>
         {tolgee ? (
@@ -52,10 +45,8 @@ export const TranslationWidget = (slug: SupportedModels) =>
             <TranslationManagement
               id={id}
               slug={slug}
-              notify={notify}
               availableLanguages={data?.availableLanguages || []}
               defaultLanguage={data?.defaultLanguage || "en"}
-              handleLanguageChange={handleLanguageChange}
             />
           </TolgeeProvider>
         ) : (
