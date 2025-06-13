@@ -35,7 +35,7 @@ export default async function tolgeeClientLoader({
       perMilliseconds: options.rateLimit?.perMilliseconds ?? 3000
     })
     tolgeeClient = setupCache(rateLimitedClient, {
-      ttl: options.ttl ?? 1000 * 60 * 1, // default 1min
+      ttl: options.ttl ?? 1000 * 60 * 5, // default 5min
       methods: ['get'],
       // If the server sends `Cache-Control: no-cache` or `no-store`, this can prevent caching.
       // Set to false for the ttl to always take precedence.

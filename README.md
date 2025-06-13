@@ -85,6 +85,11 @@ const plugins = [
       baseURL: process.env.TOLGEE_API_URL,
       apiKey: process.env.TOLGEE_API_KEY,
       projectId: "your_tolgee_project_id",
+      ttl: 1000 * 60 * 5 // Optional, default 5min
+      rateLimit: { // Optional
+        maxRequests: 15, // default
+        perMilliseconds: 3000 // default
+      },
       keys: { // Optional
         product: ["title", "subtitle", "description"]
       },
@@ -100,6 +105,8 @@ Configuration options:
 
 - **keys**: For each supported model, you can optionally specify which properties should be translatable. Otherwise all the core properties that make sense will be available by default.
 - **projectId**: Your Tolgee project ID, which you can find in the URL of your project dashboard on the Tolgee platform.
+- **ttl**: Expiration time for the in-memory cache used to deduplicate requests to Tolgee. 
+- **rateLimit**: Customizable rate limiting. The default value is designed for the Tolgee free tier, consider raising it considerably if self-hosting.
 
 #### Set Environment Variables in Medusa
 
@@ -202,6 +209,17 @@ sdk.client.fetch<HttpTypes.StoreShippingOptionListResponse>(
 ```
 
 **Tolgee hook**: You can also directly use the `useTranslate` hook provided by Tolgee. [See more info](https://docs.tolgee.io/js-sdk/integrations/react/overview)
+
+### SSG
+
+IF you have hundred of static pages to render, the default rate limit of Tolgee's free tier might cause timeouts while rendering.
+Consider adding the following code to your `next.config.js`: it prevents the requests from waiting for the rate limit and timing out, by only processing a few pages at the time. Since it's network limited, this shouldn't affect build times.
+```
+experimental: {
+  // Limits to 2 pages at a time
+  staticGenerationMaxConcurrency: 2
+}
+```
 
 ## License
 
