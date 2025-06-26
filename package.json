@@ -90,8 +90,9 @@
     "@tolgee/core": "^6.2.2",
     "@tolgee/react": "^6.2.2",
     "@tolgee/web": "^6.2.2",
-    "axios": "1.7.8",
-    "axios-cache-interceptor": "1.8.0"
+    "axios": "1.10.0",
+    "axios-cache-interceptor": "1.8.0",
+    "axios-rate-limit": "^1.4.0"
   },
   "engines": {
     "node": ">=20"

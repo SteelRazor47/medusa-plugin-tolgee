@@ -90,6 +90,7 @@ const plugins = [
         maxRequests: 15, // default
         perMilliseconds: 3000 // default
       },
+      batchingDelayMilliseconds: 50, // Optional, default 50ms
       keys: { // Optional
         product: ["title", "subtitle", "description"]
       },
@@ -107,6 +108,7 @@ Configuration options:
 - **projectId**: Your Tolgee project ID, which you can find in the URL of your project dashboard on the Tolgee platform.
 - **ttl**: Expiration time for the in-memory cache used to deduplicate requests to Tolgee. 
 - **rateLimit**: Customizable rate limiting. The default value is designed for the Tolgee free tier, consider raising it considerably if self-hosting.
+- **batchingDelayMilliseconds**: To allow fetching translations as linked properties and not hit API limits during SSG. Requests are internally batched. You can change the batching time window to favor either lower request numbers or lower latency
 
 #### Set Environment Variables in Medusa
 
@@ -212,7 +214,9 @@ sdk.client.fetch<HttpTypes.StoreShippingOptionListResponse>(
 
 ### SSG
 
-IF you have hundred of static pages to render, the default rate limit of Tolgee's free tier might cause timeouts while rendering.
+NOTE: Not strictly necessary after v1.4, since requests are batched.
+
+If you have hundred of static pages to render, the default rate limit of Tolgee's free tier might cause timeouts while rendering.
 Consider adding the following code to your `next.config.js`: it prevents the requests from waiting for the rate limit and timing out, by only processing a few pages at the time. Since it's network limited, this shouldn't affect build times.
 ```
 experimental: {

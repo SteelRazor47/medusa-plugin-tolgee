@@ -2,6 +2,7 @@ import { MedusaError } from "@medusajs/utils"
 import { TolgeeAdminOptions, defaultSupportedProperties, SupportedModels, ModelDTO } from "../../common"
 import { AxiosCacheInstance } from "axios-cache-interceptor"
 import axios, { AxiosResponseTransformer } from "axios"
+import { AxiosInstance } from "axios"
 
 export type TolgeeModuleConfig = {
     projectId: string
@@ -11,7 +12,8 @@ export type TolgeeModuleConfig = {
     rateLimit?: {
         maxRequests?: number
         perMilliseconds?: number
-    }
+    },
+    batchingDelayMilliseconds?: number
     keys?: {
         [key in SupportedModels]?: string[]
     }
@@ -52,7 +54,8 @@ class TolgeeModuleService {
 
     async getOptions(): Promise<TolgeeAdminOptions> {
         try {
-            const { data: languages } = await this.client_.get<Pick<TolgeeAdminOptions, "defaultLanguage" | "availableLanguages">>(`/languages`, {
+            // TODO: axios-cache-interceptor type mismatch
+            const { data: languages } = await (this.client_ as AxiosInstance).get<Pick<TolgeeAdminOptions, "defaultLanguage" | "availableLanguages">>(`/languages`, {
                 // use transformResponse to also cache computation.
                 // concat to the existing transforms gives JSON deserial. automatically
                 transformResponse: (axios.defaults.transformResponse as AxiosResponseTransformer[]).concat((data: TolgeeLanguagesResponse) => {
@@ -133,21 +136,38 @@ class TolgeeModuleService {
 
             const ids = Array.isArray(filter.id) ? filter.id : [filter.id]
             const langs = (await this.getOptions()).availableLanguages.map((lang) => lang.tag).join(",")
-            const response = await Promise.all(ids.map(async id => {
-                const { data } = await this.client_.get(`/translations/${langs}?ns=${id}`)
-                for (const key in data) {
-                    data[key] = data[key][id]
-                }
-                return { id, ...(country_code ? data[country_code] : data) }
-            }))
 
-            return response
+            // We use separate queries to simplify caching, they get batched anyway
+            const data = await Promise.all(ids.map(id => this.client_.get(`/translations`, { params: { languages: `${langs}`, filterNamespace: `${id}` } })));
+            const keys = data.flatMap(d => d.data._embedded.keys)
+
+            // TODO: proper typing of Tolgee response and normalized result
+            const results: {}[] = []
+            for (const id of ids) {
+                const normalizedData = this.getNormalizedData(id, keys)
+                // If the locale is passed via context, directly return the keys for that locale. Simplifies user-side fetching
+                results.push({ id, ...(country_code ? normalizedData[country_code] : normalizedData) })
+            }
+            return results
         } catch (error) {
             throw new MedusaError(
                 MedusaError.Types.UNEXPECTED_STATE,
                 `Failed to fetch translations for key ID ${filter.id}: ${error.message}`
             )
         }
+    }
+
+    private getNormalizedData(id: string, keys: any[]) {
+        const data = {}
+        for (const key of keys) {
+            if (key.keyName.startsWith(id)) {
+                for (const language in key.translations) {
+                    if (!data[language]) data[language] = {}
+                    data[language][key.keyName.split(".")[1]] = key.translations[language].text
+                }
+            }
+        }
+        return data
     }
 
     async createNewKeyWithTranslation(keys: {
