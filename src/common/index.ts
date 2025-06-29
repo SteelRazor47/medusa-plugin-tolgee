@@ -1,5 +1,17 @@
-import type { AdminCollection, AdminProduct, AdminProductCategory, AdminProductOption, AdminProductOptionValue, AdminProductTag, AdminProductType, AdminProductVariant, AdminShippingOption, ProductCategoryDTO, ProductCollectionDTO, ProductDTO, ProductOptionDTO, ProductOptionValueDTO, ProductTagDTO, ProductTypeDTO, ProductVariantDTO, ShippingOptionDTO } from "@medusajs/framework/types";
+import type { AdminCollection, AdminProduct, AdminProductCategory, AdminProductOption, AdminProductOptionValue, AdminProductTag, AdminProductType, AdminProductVariant, AdminShippingOption, Context, FindConfig, ProductCategoryDTO, ProductCollectionDTO, ProductDTO, ProductOptionDTO, ProductOptionValueDTO, ProductTagDTO, ProductTypeDTO, ProductVariantDTO, ShippingOptionDTO } from "@medusajs/framework/types";
 import { FulfillmentEvents, ProductEvents } from "@medusajs/framework/utils";
+
+export const supportedModelsList = [
+    "product",
+    "product_category",
+    "product_collection",
+    "product_option",
+    "product_option_value",
+    "product_type",
+    "product_tag",
+    "product_variant",
+    "shipping_option",
+] as const
 
 interface SupportedModelsMap {
     product: AdminProduct;
@@ -62,4 +74,12 @@ export type WidgetType<K extends SupportedModels> = SupportedModelsMap[K];
 interface Language {
     label: string;
     tag: string;
+}
+
+// TODO: the method exists but not on the upstream interface
+// remove when added
+declare module "@medusajs/framework/types" {
+    interface IProductModuleService {
+        retrieveProductOptionValue(id: string, config?: FindConfig<ProductOptionValueDTO>, sharedContext?: Context): Promise<ProductOptionValueDTO>;
+    }
 }
