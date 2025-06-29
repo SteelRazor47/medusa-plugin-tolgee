@@ -93,7 +93,8 @@ class TolgeeModuleService {
         const ids = Array.isArray(id) ? id : [id]
         try {
             const response = await this.client_.get(
-                `/keys/select?filterNamespace=${ids.join(",")}`
+                `/keys/select?filterNamespace=${ids.join(",")}`,
+                { id: `get-namespace-${id}` }
             )
 
             return response.data.ids
@@ -107,7 +108,7 @@ class TolgeeModuleService {
 
     async getKeyName(keyId: string): Promise<string> {
         try {
-            const response = await this.client_.get(`/keys/${keyId}`)
+            const response = await this.client_.get(`/keys/${keyId}`, { id: `get-key-${keyId}` })
 
             return response.data.name
         } catch (error) {
@@ -138,7 +139,7 @@ class TolgeeModuleService {
             const langs = (await this.getOptions()).availableLanguages.map((lang) => lang.tag).join(",")
 
             // We use separate queries to simplify caching, they get batched anyway
-            const data = await Promise.all(ids.map(id => this.client_.get(`/translations`, { params: { languages: `${langs}`, filterNamespace: `${id}` } })));
+            const data = await Promise.all(ids.map(id => this.client_.get(`/translations`, { params: { languages: `${langs}`, filterNamespace: `${id}` }, id: `get-translation-${id}` })));
             const keys = data.flatMap(d => d.data._embedded.keys)
 
             // TODO: proper typing of Tolgee response and normalized result
@@ -186,7 +187,17 @@ class TolgeeModuleService {
                         namespace: id,
                         translations: { [tolgeeOptions.defaultLanguage]: translation },
                     }))
-                })
+                },
+                {
+                    cache: {
+                        update: Object.fromEntries(keys.flatMap(({ id, keyName }) => [
+                            [`get-key-${id}.${keyName}`, "delete"],
+                            [`get-namespace-${id}`, "delete"],
+                            [`get-translation-${id}`, "delete"],
+                        ]))
+                    }
+                }
+            )
 
             return
         } catch (error) {
@@ -224,7 +235,15 @@ class TolgeeModuleService {
         const keys = await this.getNamespaceKeys(id)
 
         try {
-            const response = await this.client_.delete(`/keys/${keys}`)
+            const response = await this.client_.delete(`/keys/${keys}`, {
+                cache: {
+                    update: Object.fromEntries(keys.flatMap(keyName => [
+                        [`get-key-${id}.${keyName}`, "delete"],
+                        [`get-namespace-${id}`, "delete"],
+                        [`get-translation-${id}`, "delete"],
+                    ]))
+                }
+            })
 
             return response.data
         } catch (error) {
