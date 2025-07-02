@@ -94,7 +94,7 @@ class TolgeeModuleService {
         try {
             const response = await this.client_.get(
                 `/keys/select?filterNamespace=${ids.join(",")}`,
-                { id: `get-namespace-${id}` }
+                { cache: false }
             )
 
             return response.data.ids
@@ -108,7 +108,7 @@ class TolgeeModuleService {
 
     async getKeyName(keyId: string): Promise<string> {
         try {
-            const response = await this.client_.get(`/keys/${keyId}`, { id: `get-key-${keyId}` })
+            const response = await this.client_.get(`/keys/${keyId}`, { cache: false })
 
             return response.data.name
         } catch (error) {
@@ -190,11 +190,7 @@ class TolgeeModuleService {
                 },
                 {
                     cache: {
-                        update: Object.fromEntries(keys.flatMap(({ id, keyName }) => [
-                            [`get-key-${id}.${keyName}`, "delete"],
-                            [`get-namespace-${id}`, "delete"],
-                            [`get-translation-${id}`, "delete"],
-                        ]))
+                        update: Object.fromEntries(keys.map(({ id }) => [`get-translation-${id}`, "delete"]))
                     }
                 }
             )
@@ -237,11 +233,7 @@ class TolgeeModuleService {
         try {
             const response = await this.client_.delete(`/keys/${keys}`, {
                 cache: {
-                    update: Object.fromEntries(keys.flatMap(keyName => [
-                        [`get-key-${id}.${keyName}`, "delete"],
-                        [`get-namespace-${id}`, "delete"],
-                        [`get-translation-${id}`, "delete"],
-                    ]))
+                    update: { [`get-translation-${id}`]: "delete" }
                 }
             })
 

@@ -93,7 +93,8 @@
     "@tolgee/web": "^6.2.2",
     "axios": "1.10.0",
     "axios-cache-interceptor": "1.8.0",
-    "axios-rate-limit": "^1.4.0"
+    "bottleneck": "^2.19.5",
+    "dataloader": "^2.2.3"
   },
   "engines": {
     "node": ">=20"
