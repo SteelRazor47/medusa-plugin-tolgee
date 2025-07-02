@@ -60,7 +60,7 @@ export const getModelTranslationKeysStep = createStep(
   "tolgee-get-model-translation-keys",
   async ({ id }: GetStepInput, { container }) => {
     const translationModule = container.resolve(TOLGEE_MODULE);
-    const keyNames = await translationModule.getProductTranslationKeys(id);
+    const keyNames = await translationModule.getModelKeyNames(id);
     return new StepResponse(keyNames);
   }
 );

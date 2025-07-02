@@ -89,41 +89,16 @@ class TolgeeModuleService {
         }
     }
 
-    async getNamespaceKeys(id: string | string[]): Promise<string[]> {
-        const ids = Array.isArray(id) ? id : [id]
+    async getModelKeyNames(id: string) {
         try {
-            const response = await this.client_.get(
-                `/keys/select?filterNamespace=${ids.join(",")}`,
-                { cache: false }
-            )
-
-            return response.data.ids
+            const response = await this.client_.get(`/keys/search?search=ns=${id}`, { cache: false })
+            return response.data?._embedded?.keys?.map(k => k.name) ?? [];
         } catch (error) {
             throw new MedusaError(
                 MedusaError.Types.UNEXPECTED_STATE,
-                `Failed to fetch namespace keys for ${id}: ${error.message}`
+                `Failed to fetch key names for model ${id}: ${error.message}`
             )
         }
-    }
-
-    async getKeyName(keyId: string): Promise<string> {
-        try {
-            const response = await this.client_.get(`/keys/${keyId}`, { cache: false })
-
-            return response.data.name
-        } catch (error) {
-            throw new MedusaError(
-                MedusaError.Types.UNEXPECTED_STATE,
-                `Failed to fetch key name for key ID ${keyId}: ${error.message}`
-            )
-        }
-    }
-
-    async getProductTranslationKeys(
-        ids: string | string[]
-    ) {
-        const keys = await this.getNamespaceKeys(ids)
-        return await Promise.all(keys.map((keyId) => this.getKeyName(keyId)))
     }
 
     async list(
@@ -171,7 +146,7 @@ class TolgeeModuleService {
         return data
     }
 
-    async createNewKeyWithTranslation(keys: {
+    private async createNewKeyWithTranslation(keys: {
         id: string,
         tags: string[],
         keyName: string,
@@ -224,6 +199,23 @@ class TolgeeModuleService {
         } catch (error) {
             console.error(`Entities of type ${type} already translated or error creating translations: ${models.map((model) => model.id)}`, error)
             return []
+        }
+    }
+
+    private async getNamespaceKeys(id: string | string[]): Promise<string[]> {
+        const ids = Array.isArray(id) ? id : [id]
+        try {
+            const response = await this.client_.get(
+                `/keys/select?filterNamespace=${ids.join(",")}`,
+                { cache: false }
+            )
+
+            return response.data.ids
+        } catch (error) {
+            throw new MedusaError(
+                MedusaError.Types.UNEXPECTED_STATE,
+                `Failed to fetch namespace keys for ${id}: ${error.message}`
+            )
         }
     }
 
