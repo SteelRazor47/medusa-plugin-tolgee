@@ -3,6 +3,7 @@ import { TolgeeAdminOptions, defaultSupportedProperties, SupportedModels, ModelD
 import { AxiosCacheInstance } from "axios-cache-interceptor"
 import axios, { AxiosResponseTransformer } from "axios"
 import { AxiosInstance } from "axios"
+import { Logger } from "@medusajs/medusa"
 
 export type TolgeeModuleConfig = {
     projectId: string
@@ -37,11 +38,13 @@ type TolgeeLanguagesResponse = {
 
 
 class TolgeeModuleService {
-    protected client_: AxiosCacheInstance
-    readonly options_: TolgeeModuleConfigInternal
+    protected readonly client_: AxiosCacheInstance
+    protected readonly logger: Logger
+    protected readonly options_: TolgeeModuleConfigInternal
 
-    constructor({ tolgeeClient }: { tolgeeClient: AxiosCacheInstance }, options: TolgeeModuleConfig) {
+    constructor({ tolgeeClient, logger }: { tolgeeClient: AxiosCacheInstance, logger: Logger }, options: TolgeeModuleConfig) {
         this.client_ = tolgeeClient
+        this.logger = logger
 
         this.options_ = {
             ...options,
@@ -172,7 +175,7 @@ class TolgeeModuleService {
 
             return
         } catch (error) {
-            console.error(error)
+            this.logger.error(error)
             throw new MedusaError(
                 MedusaError.Types.UNEXPECTED_STATE,
                 `Failed to import keys ${error}`
@@ -197,7 +200,7 @@ class TolgeeModuleService {
             await this.createNewKeyWithTranslation(keys)
             return models.map((model) => model.id)
         } catch (error) {
-            console.error(`Entities of type ${type} already translated or error creating translations: ${models.map((model) => model.id)}`, error)
+            this.logger.error(`Entities of type ${type} already translated or error creating translations: ${models.map((model) => model.id)}`, error)
             return []
         }
     }

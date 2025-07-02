@@ -1,12 +1,12 @@
 import {
   LoaderOptions,
 } from "@medusajs/framework/types"
-import { MedusaError } from "@medusajs/utils";
+import { MedusaError, Modules } from "@medusajs/utils";
 import axios from "axios";
 import { setupCache } from 'axios-cache-interceptor';
 import { TolgeeModuleConfig } from "../service";
 import { asValue } from "awilix";
-import { setupBatchingAdapter } from "./interceptors/batching-adapter";
+import { setupBatchingAdapter } from "./utils/batching-adapter";
 
 export default async function tolgeeClientLoader({
   container,
@@ -30,7 +30,7 @@ export default async function tolgeeClientLoader({
       maxBodyLength: Infinity,
     })
 
-    setupBatchingAdapter(client, {
+    setupBatchingAdapter(client, container.resolve("logger"), {
       batchUrl: "/translations",
       batchQueryParam: "filterNamespace",
       batchingDelayMilliseconds: options.batchingDelayMilliseconds ?? 50,

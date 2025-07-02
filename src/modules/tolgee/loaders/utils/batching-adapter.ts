@@ -1,3 +1,4 @@
+import { Logger } from "@medusajs/medusa";
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from "axios";
 import { InternalCacheRequestConfig } from "axios-cache-interceptor";
 import Bottleneck from "bottleneck";
@@ -14,7 +15,7 @@ interface BatchingOptions {
   };
 }
 
-export function setupBatchingAdapter(client: AxiosInstance, options: BatchingOptions) {
+export function setupBatchingAdapter(client: AxiosInstance, logger: Logger, options: BatchingOptions) {
   const originalAdapter = client.defaults.adapter
 
   const limiter = new Bottleneck({
@@ -29,7 +30,7 @@ export function setupBatchingAdapter(client: AxiosInstance, options: BatchingOpt
       batchConfig.params = { ...batchConfig.params, [options.batchQueryParam]: queryValues }
 
       try {
-        console.log(`Sending batched request for ${queryValues}`)
+        logger.debug(`medusal-plugin-tolgee: Sending batched request for ${queryValues}`)
         // Schedule the API call through the rate limiter and execute with axios.
         // Note: we use the default axios client with the default adapter here to avoid infinite loops.
         const response = await limiter.schedule(() => axios.request(batchConfig));
@@ -52,7 +53,7 @@ export function setupBatchingAdapter(client: AxiosInstance, options: BatchingOpt
           }
         });
       } catch (error) {
-        console.error(`Batch request failed for ${batchConfig.url}:`, error);
+        logger.error(`Batch request failed for ${batchConfig.url}:`, error);
         const batchError = error instanceof Error ? error : new Error('Batch request failed');
         return configs.map(() => batchError)
       }
@@ -70,7 +71,7 @@ export function setupBatchingAdapter(client: AxiosInstance, options: BatchingOpt
       return axios.getAdapter(originalAdapter)(config)
     }
 
-    console.log(`Requesting batch for ${queryValue}`)
+    logger.debug(`medusa-plugin-tolgee: Requesting batch for ${queryValue}`)
     return loader.load(config);
   }
 }
