@@ -59,6 +59,7 @@ class TolgeeModuleService {
         try {
             // TODO: axios-cache-interceptor type mismatch
             const { data: languages } = await (this.client_ as AxiosInstance).get<Pick<TolgeeAdminOptions, "defaultLanguage" | "availableLanguages">>(`/languages`, {
+                params: { size: 9999 },
                 // use transformResponse to also cache computation.
                 // concat to the existing transforms gives JSON deserial. automatically
                 transformResponse: (axios.defaults.transformResponse as AxiosResponseTransformer[]).concat((data: TolgeeLanguagesResponse) => {
@@ -94,7 +95,7 @@ class TolgeeModuleService {
 
     async getModelKeyNames(id: string) {
         try {
-            const response = await this.client_.get(`/keys/search?search=ns=${id}`, { cache: false })
+            const response = await this.client_.get(`/keys/search?search=ns=${id}&size=9999`, { cache: false })
             return response.data?._embedded?.keys?.map(k => k.name) ?? [];
         } catch (error) {
             throw new MedusaError(
@@ -117,7 +118,7 @@ class TolgeeModuleService {
             const langs = (await this.getOptions()).availableLanguages.map((lang) => lang.tag).join(",")
 
             // We use separate queries to simplify caching, they get batched anyway
-            const data = await Promise.all(ids.map(id => this.client_.get(`/translations`, { params: { languages: `${langs}`, filterNamespace: `${id}` }, id: `get-translation-${id}` })));
+            const data = await Promise.all(ids.map(id => this.client_.get(`/translations`, { params: { languages: `${langs}`, filterNamespace: `${id}`, size: 9999 }, id: `get-translation-${id}` })));
             const keys = data.flatMap(d => d.data._embedded.keys)
 
             // TODO: proper typing of Tolgee response and normalized result
