@@ -2,7 +2,7 @@
   "name": "medusa-plugin-tolgee",
   "description": "Medusa V2 Plugin to easily add translations to your models with Tolgee ",
   "author": "SteelRazor47",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "license": "MIT",
   "repository": {
     "type": "git",
