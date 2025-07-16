@@ -1,7 +1,7 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { HttpTypes } from "@medusajs/framework/types"
 import listShippingOptionsForCartWithTranslationsWorkflow from "../../../../workflows/shipping-options-with-translations"
-import { StoreGetTolgeeShippingOptionList } from "./middlewares"
+import { StoreGetTolgeeShippingOptionList } from "../../../middlewares"
 
 export const GET = async (
     req: MedusaRequest<{}, StoreGetTolgeeShippingOptionList>,

@@ -29,7 +29,7 @@ const cartFieldsForPricingContext = [
 
 const listShippingOptionsForCartWithTranslationsWorkflow = createWorkflow(
     listShippingOptionsForCartWorkflowId,
-    (input: WorkflowData<ListShippingOptionsForCartWorkflowInput & { country_code: string }>) => {
+    (input: WorkflowData<ListShippingOptionsForCartWorkflowInput & { country_code?: string }>) => {
         const cartQuery = useQueryGraphStep({
             entity: "cart",
             filters: { id: input.cart_id },
