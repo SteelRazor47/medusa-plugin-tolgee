@@ -1,7 +1,7 @@
 import { loadEnv, defineConfig } from '@medusajs/framework/utils'
 import { TolgeeModuleConfig } from 'medusa-plugin-tolgee/.medusa/server/src/modules/tolgee'
 
-loadEnv(process.env.NODE_ENV || 'development', process.cwd())
+loadEnv(process.env.NODE_ENV || 'test', process.cwd())
 
 module.exports = defineConfig({
   projectConfig: {
