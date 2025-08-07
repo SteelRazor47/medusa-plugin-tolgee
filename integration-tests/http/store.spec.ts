@@ -1,17 +1,19 @@
+import { SalesChannelDTO, RegionDTO, ShippingOptionDTO, IEventBusModuleService } from "@medusajs/framework/types"
 import { MedusaContainer } from "@medusajs/medusa"
-import { medusaIntegrationTestRunner } from "@medusajs/test-utils"
-import { ApiKeyType, ContainerRegistrationKeys, Modules, PUBLISHABLE_KEY_HEADER } from "@medusajs/utils"
+import { medusaIntegrationTestRunner, TestEventUtils } from "@medusajs/test-utils"
+import { ApiKeyType, ContainerRegistrationKeys, FulfillmentEvents, Modules, PUBLISHABLE_KEY_HEADER } from "@medusajs/utils"
 import jwt from "jsonwebtoken"
 import { TOLGEE_MODULE } from "medusa-plugin-tolgee"
 
 jest.setTimeout(60000)
 
 medusaIntegrationTestRunner({
+
   testSuite: ({ getContainer, api }) => {
     describe("Shipping Option", () => {
-      let salesChannel
-      let region
-      let shippingOption
+      let salesChannel: SalesChannelDTO
+      let region: RegionDTO
+      let shippingOption: ShippingOptionDTO
 
       let appContainer: MedusaContainer
       const storeHeaders = { headers: {} }
@@ -22,8 +24,9 @@ medusaIntegrationTestRunner({
       })
 
       beforeEach(async () => {
-        const authModuleService = appContainer.resolve("auth")
-        const userModuleService = appContainer.resolve("user")
+        const eventBus = appContainer.resolve(Modules.EVENT_BUS)
+        const authModuleService = appContainer.resolve(Modules.AUTH)
+        const userModuleService = appContainer.resolve(Modules.USER)
 
         await Promise.all([
           getPublishableKey(appContainer, storeHeaders),
@@ -90,6 +93,7 @@ medusaIntegrationTestRunner({
           )
         ).data.fulfillment_set
 
+        const subscriberExecution = TestEventUtils.waitSubscribersExecution(FulfillmentEvents.SHIPPING_OPTION_CREATED, eventBus)
         shippingOption = (
           await api.post(
             `/admin/shipping-options`,
@@ -130,6 +134,8 @@ medusaIntegrationTestRunner({
             adminHeaders
           )
         ).data.shipping_option
+        await subscriberExecution
+
       })
 
       afterEach(async () => {
