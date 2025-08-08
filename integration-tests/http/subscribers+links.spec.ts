@@ -1,10 +1,10 @@
-import { SalesChannelDTO, RegionDTO, ShippingOptionDTO, IEventBusModuleService, CartDTO, ProductDTO, CreateProductDTO, AdminCreateProduct, ProductVariantDTO, ProductCategoryDTO, ProductCollectionDTO, ProductTypeDTO, ProductTagDTO } from "@medusajs/framework/types"
+import { ShippingOptionDTO, IEventBusModuleService, CartDTO, ProductDTO, ProductCategoryDTO, ProductCollectionDTO, ProductTypeDTO, ProductTagDTO } from "@medusajs/framework/types"
 import { MedusaContainer } from "@medusajs/medusa"
 import { TestEventUtils } from "@medusajs/test-utils"
-import { ApiKeyType, ContainerRegistrationKeys, FulfillmentEvents, Modules, ProductEvents, PUBLISHABLE_KEY_HEADER } from "@medusajs/utils"
-import jwt from "jsonwebtoken"
+import { ContainerRegistrationKeys, FulfillmentEvents, Modules } from "@medusajs/utils"
 import { TOLGEE_MODULE } from "medusa-plugin-tolgee"
 import { medusaIntegrationTestRunnerManual } from "../utils/medusa-test-runner"
+import { getPublishableKey, getAdminToken } from "../utils/tokens"
 
 jest.setTimeout(60000)
 
@@ -224,7 +224,12 @@ medusaIntegrationTestRunnerManual({
 
       afterAll(async () => {
         const tolgeeService = appContainer.resolve(TOLGEE_MODULE)
-        await tolgeeService.deleteTranslation(product.id)
+        await Promise.all([
+          tolgeeService.deleteTranslation(product.id),
+          product.variants.map(v => tolgeeService.deleteTranslation(v.id)),
+          product.options.map(o => tolgeeService.deleteTranslation(o.id)),
+          product.options.flatMap(o => o.values).map(v => tolgeeService.deleteTranslation(v.id)),
+        ])
       })
 
       describe("Product", () => {
@@ -465,45 +470,4 @@ medusaIntegrationTestRunnerManual({
   },
 })
 
-async function getAdminToken(appContainer: MedusaContainer, adminHeaders: { headers: {} }) {
-  const authModuleService = appContainer.resolve(Modules.AUTH)
-  const userModuleService = appContainer.resolve(Modules.USER)
-  const user = await userModuleService.createUsers({ email: "admin@medusa.js" })
-  const authIdentity = await authModuleService.createAuthIdentities({
-    provider_identities: [
-      {
-        provider: "emailpass",
-        entity_id: "admin@medusa.js",
-        provider_metadata: {
-          password: "supersecret",
-        },
-      },
-    ],
-    app_metadata: {
-      user_id: user.id,
-    },
-  })
-
-  const token = jwt.sign(
-    {
-      actor_id: user.id,
-      actor_type: "user",
-      auth_identity_id: authIdentity.id,
-    },
-    "supersecret",
-    {
-      expiresIn: "1d",
-    }
-  )
-  adminHeaders.headers["authorization"] = `Bearer ${token}`
-}
-
-async function getPublishableKey(appContainer: MedusaContainer, storeHeaders: { headers: {} }) {
-  const publishableKey = await appContainer.resolve(Modules.API_KEY).createApiKeys({
-    title: "test publishable key",
-    type: ApiKeyType.PUBLISHABLE,
-    created_by: "test",
-  })
-  storeHeaders.headers[PUBLISHABLE_KEY_HEADER] = publishableKey.token
-}
 
