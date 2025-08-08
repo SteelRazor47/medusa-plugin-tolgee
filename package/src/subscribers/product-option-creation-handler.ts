@@ -3,8 +3,9 @@ import {
     type SubscriberArgs,
 } from "@medusajs/medusa";
 import { TOLGEE_MODULE } from "../modules/tolgee";
-import { Modules, ProductEvents } from "@medusajs/framework/utils";
+import { Modules } from "@medusajs/framework/utils"
 
+// Only called if the option is created directly, not as part of product creation
 export default async function productOptionCreationHandler({
     event: { data },
     container,
@@ -14,8 +15,10 @@ export default async function productOptionCreationHandler({
     const { id } = data;
 
     const option = await productService.retrieveProductOption(id, { relations: ["values"] });
-    await translationModule.createModelTranslations([option], "product_option");
-    await translationModule.createModelTranslations(option.values, "product_option_value");
+    await Promise.all([
+        translationModule.createModelTranslations([option], "product_option"),
+        translationModule.createModelTranslations(option.values, "product_option_value")
+    ])
 }
 
 export const config: SubscriberConfig = {
