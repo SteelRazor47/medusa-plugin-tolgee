@@ -8,6 +8,8 @@ import { getPublishableKey, getAdminToken } from "../utils/tokens"
 
 jest.setTimeout(60000)
 
+type ExtendArray<DataType> = Array<DataType extends Array<infer T> ? T & { translations: any } : never>
+
 medusaIntegrationTestRunnerManual({
   testSuite: ({ getContainer, api }) => {
     let appContainer: MedusaContainer, eventBus: IEventBusModuleService
@@ -154,11 +156,12 @@ medusaIntegrationTestRunnerManual({
 
       test("subscriber created translation + link works", async () => {
         const query = appContainer.resolve(ContainerRegistrationKeys.QUERY)
-        const { data: shippingOptions } = await query.graph({
+        const { data } = await query.graph({
           entity: "shipping_option",
           fields: ["translations.*"],
           filters: { id: shippingOption.id },
         })
+        const shippingOptions = data as ExtendArray<typeof data>
 
         expect(shippingOptions).toHaveLength(1)
         expect(shippingOptions[0]).toHaveProperty("translations")
@@ -235,11 +238,12 @@ medusaIntegrationTestRunnerManual({
       describe("Product", () => {
         test("subscriber created translation + link works", async () => {
           const query = appContainer.resolve(ContainerRegistrationKeys.QUERY)
-          const { data: products } = await query.graph({
+          const { data } = await query.graph({
             entity: "product",
             fields: ["translations.*"],
             filters: { id: product.id },
           })
+          const products = data as ExtendArray<typeof data>
 
           expect(products).toHaveLength(1)
           expect(products[0]).toHaveProperty("translations")
@@ -253,11 +257,12 @@ medusaIntegrationTestRunnerManual({
       describe("Product variant", () => {
         test("subscriber created translation + link works", async () => {
           const query = appContainer.resolve(ContainerRegistrationKeys.QUERY)
-          const { data: variants } = await query.graph({
+          const { data } = await query.graph({
             entity: "product_variants",
             fields: ["translations.*"],
             filters: { id: product.variants[0].id },
           })
+          const variants = data as ExtendArray<typeof data>
 
           expect(variants).toHaveLength(1)
           expect(variants[0]).toHaveProperty("translations")
@@ -271,11 +276,12 @@ medusaIntegrationTestRunnerManual({
       describe("Product option", () => {
         test("subscriber created translation + link works", async () => {
           const query = appContainer.resolve(ContainerRegistrationKeys.QUERY)
-          const { data: options } = await query.graph({
+          const { data } = await query.graph({
             entity: "product_options",
             fields: ["translations.*"],
             filters: { id: product.options[0].id },
           })
+          const options = data as ExtendArray<typeof data>
 
           expect(options).toHaveLength(1)
           expect(options[0]).toHaveProperty("translations")
@@ -288,11 +294,12 @@ medusaIntegrationTestRunnerManual({
       describe("Product option values", () => {
         test("subscriber created translation + link works", async () => {
           const query = appContainer.resolve(ContainerRegistrationKeys.QUERY)
-          const { data: values } = await query.graph({
+          const { data } = await query.graph({
             entity: "product_option_values",
             fields: ["translations.*"],
             filters: { id: product.options[0].values[0].id },
           })
+          const values = data as ExtendArray<typeof data>
 
           expect(values).toHaveLength(1)
           expect(values[0]).toHaveProperty("translations")
@@ -329,11 +336,12 @@ medusaIntegrationTestRunnerManual({
 
       test("subscriber created translation + link works", async () => {
         const query = appContainer.resolve(ContainerRegistrationKeys.QUERY)
-        const { data: categories } = await query.graph({
+        const { data } = await query.graph({
           entity: "product_categories",
           fields: ["translations.*"],
           filters: { id: category.id },
         })
+        const categories = data as ExtendArray<typeof data>
 
         expect(categories).toHaveLength(1)
         expect(categories[0]).toHaveProperty("translations")
@@ -370,11 +378,12 @@ medusaIntegrationTestRunnerManual({
 
       test("subscriber created translation + link works", async () => {
         const query = appContainer.resolve(ContainerRegistrationKeys.QUERY)
-        const { data: collections } = await query.graph({
+        const { data } = await query.graph({
           entity: "product_collections",
           fields: ["translations.*"],
           filters: { id: collection.id },
         })
+        const collections = data as ExtendArray<typeof data>
 
         expect(collections).toHaveLength(1)
         expect(collections[0]).toHaveProperty("translations")
@@ -411,11 +420,12 @@ medusaIntegrationTestRunnerManual({
 
       test("subscriber created translation + link works", async () => {
         const query = appContainer.resolve(ContainerRegistrationKeys.QUERY)
-        const { data: types } = await query.graph({
+        const { data } = await query.graph({
           entity: "product_types",
           fields: ["translations.*"],
           filters: { id: type.id },
         })
+        const types = data as ExtendArray<typeof data>
 
         expect(types).toHaveLength(1)
         expect(types[0]).toHaveProperty("translations")
@@ -452,11 +462,12 @@ medusaIntegrationTestRunnerManual({
 
       test("subscriber created translation + link works", async () => {
         const query = appContainer.resolve(ContainerRegistrationKeys.QUERY)
-        const { data: tags } = await query.graph({
+        const { data } = await query.graph({
           entity: "product_tags",
           fields: ["translations.*"],
           filters: { id: tag.id },
         })
+        const tags = data as ExtendArray<typeof data>
 
         expect(tags).toHaveLength(1)
         expect(tags[0]).toHaveProperty("translations")
