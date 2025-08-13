@@ -1,0 +1,54 @@
+name: Integration Tests
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create env file
+        run: |
+          echo 'DB_USERNAME=postgres' >> ./integration-tests/.env.test
+          echo 'DB_PASSWORD=postgres' >> ./integration-tests/.env.test
+          echo 'TOLGEE_API_URL=https://app.tolgee.io' >> ./integration-tests/.env.test
+          echo 'TOLGEE_API_KEY=${{ secrets.TOLGEE_API_KEY }}' >> ./integration-tests/.env.test
+          echo 'TOLGEE_PROJECT_ID=${{ secrets.TOLGEE_PROJECT_ID }}' >> ./integration-tests/.env.test
+
+      - name: Build
+        run: |
+          cd package
+          pnpm run --filter medusa-plugin-tolgee build
+
+      - name: Run tests
+        run: pnpm run --filter integration-tests test:integration:http

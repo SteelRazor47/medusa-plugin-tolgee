@@ -11,6 +11,14 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
     permissions:
       contents: write
       packages: write  
@@ -35,11 +43,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # - name: Run tests
-      #   run: pnpm test
+      - name: Create env file
+        run: |
+          echo 'DB_USERNAME=postgres' >> ./integration-tests/.env.test
+          echo 'DB_PASSWORD=postgres' >> ./integration-tests/.env.test
+          echo 'TOLGEE_API_URL=https://app.tolgee.io' >> ./integration-tests/.env.test
+          echo 'TOLGEE_API_KEY=${{ secrets.TOLGEE_API_KEY }}' >> ./integration-tests/.env.test
+          echo 'TOLGEE_PROJECT_ID=${{ secrets.TOLGEE_PROJECT_ID }}' >> ./integration-tests/.env.test
 
-      # - name: Build
-      #   run: pnpm run build
+      - name: Run tests
+        run: pnpm run --filter integration-tests test:integration:http
+
+      - name: Build
+        run: |
+          cd package
+          pnpm run --filter medusa-plugin-tolgee build
 
       - name: Configure Git
         run: |
@@ -49,10 +67,12 @@ jobs:
       - name: Bump version and push
         id: version-bump
         run: |
+          cd package
           pnpm version ${{ github.event.inputs.version }} -m "chore: release v%s"
           # Get the new version after bumping
           VERSION=$(node -p "require('./package.json').version")
-          
+          cd ..
+
           # Set version output
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           
@@ -60,7 +80,7 @@ jobs:
           git push && git push --tags
 
       - name: Publish to NPM
-        run: pnpm publish
+        run: pnpm  --filter medusa-plugin-tolgee publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
